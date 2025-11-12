@@ -37,6 +37,22 @@ class FreelancerProfile(models.Model):
     def __str__(self):
         return f"{self.user.email}'s Profile"
 
+
+class FreelancerPortfolio(models.Model):
+    user = models.ForeignKey(FreelancerProfile, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    project_link = models.URLField(blank=True, null=True)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def _str_(self):
+        return self.name
+
+class PortfolioImage(models.Model):
+    portfolio = models.ForeignKey(FreelancerPortfolio, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='portfolio_images/')
+
+
 class ClientProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company_name = models.CharField(max_length=200)

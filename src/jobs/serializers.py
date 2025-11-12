@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Skill, FreelancerProfile, ClientProfile, JobPost, Proposal
+from .models import FreelancerPortfolio, PortfolioImage, Skill, FreelancerProfile, ClientProfile, JobPost, Proposal
 
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,3 +50,43 @@ class ProposalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proposal
         fields = '__all__'
+class PortfolioImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PortfolioImage
+        fields = ['id', 'image']
+
+
+class FreelancerPortfolioSerializer(serializers.ModelSerializer):
+    images = PortfolioImageSerializer(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(max_length=1000000, allow_empty_file=False, use_url=False),
+        write_only=True,
+        required=False
+    )
+
+    class Meta:
+        model = FreelancerPortfolio
+        fields = [
+            'id', 'user', 'name', 'project_link', 'description',
+            'created_at', 'images', 'uploaded_images'
+        ]
+        read_only_fields = ['created_at']
+    def create(self, validated_data):
+        uploaded_images = validated_data.pop('uploaded_images', [])
+        portfolio = FreelancerPortfolio.objects.create(**validated_data)
+
+        for image in uploaded_images:
+            PortfolioImage.objects.create(portfolio=portfolio, image=image)
+
+        return portfolio
+
+    def update(self, instance, validated_data):
+        uploaded_images = validated_data.pop('uploaded_images', [])
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        for image in uploaded_images:
+            PortfolioImage.objects.create(portfolio=instance, image=image)
+
+        return instance

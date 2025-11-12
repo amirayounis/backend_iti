@@ -4,9 +4,9 @@ from rest_framework.response import Response
 
 
 from users.models import User
-from .models import Skill, FreelancerProfile, ClientProfile, JobPost, Proposal
+from .models import FreelancerPortfolio, Skill, FreelancerProfile, ClientProfile, JobPost, Proposal
 from .serializers import (
-    SkillSerializer, FreelancerProfileSerializer, ClientProfileSerializer,
+    FreelancerPortfolioSerializer, SkillSerializer, FreelancerProfileSerializer, ClientProfileSerializer,
     JobPostSerializer, ProposalSerializer
 )
 from .ai.job_matching import get_matches_jops, store_job_embedding , remove_job_embedding,store_job_embedding_with_ollama,get_matches_jops_ollama
@@ -224,3 +224,6 @@ def post_job(request):
     if JobPostSerializer.is_valid():
         JobPostSerializer.save(client=cleint)
         return Response({"data":JobPostSerializer.data,"is_success":True}, status=status.HTTP_201_CREATED)
+class FreelancerPortfolioViewSet(viewsets.ModelViewSet):
+    queryset = FreelancerPortfolio.objects.all()
+    serializer_class = FreelancerPortfolioSerializer
