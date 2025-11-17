@@ -76,8 +76,9 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Dict:
             status='draft'
         )
         print(f"Proposal saved successfully: {proposalai.id}")
+        return proposalai
     except Exception as e:
         print(f"Error saving proposal: {str(e)}")
         return None
     
-    return proposal_data
+    return proposalai

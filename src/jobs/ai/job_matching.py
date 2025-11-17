@@ -139,14 +139,14 @@ def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10, current_u
             #         current_user = request.user
             
             # # Try to get freelancer profile if user is authenticated
-            if current_user:
+            # if current_user:
 
-                try:
-                    print(f"Fetching freelancer profile for user {current_user}")
-                    freelancer = FreelancerProfile.objects.get(user=current_user)
-                    draft_proposal(job, freelancer)
-                except FreelancerProfile.DoesNotExist:
-                    print(f"No freelancer profile for user {current_user}")
+            #     try:
+            #         print(f"Fetching freelancer profile for user {current_user}")
+            #         freelancer = FreelancerProfile.objects.get(user=current_user)
+            #         draft_proposal(job, freelancer)
+            #     except FreelancerProfile.DoesNotExist:
+            #         print(f"No freelancer profile for user {current_user}")
             
             final_results.append({
                 "id": job.id,

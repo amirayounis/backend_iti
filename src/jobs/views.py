@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 
+from jobs.ai.draft_proposal import draft_proposal
 from users.models import User
 from .models import FreelancerPortfolio, Skill, FreelancerProfile, ClientProfile, JobPost, Proposalai
 from .serializers import (
@@ -173,66 +174,15 @@ class ProposalViewSet(viewsets.ModelViewSet):
         elif hasattr(user, 'clientprofile'):
             return Proposalai.objects.filter(job__client=user.clientprofile)
         return Proposalai.objects.none()
-
-    @action(detail=True, methods=['post'])
-    def generate_ai_suggestion(self, request, pk=None):
-
-        """
-        Generate AI-powered suggestions for a proposal.
-        Analyzes the match between the freelancer's profile and the job requirements.
-        """
-        proposal = self.get_object()
-        
-        try:
-            from .ai.job_matching import find_matching_jobs
-            
-            # Get freelancer's skills and experience
-            freelancer_profile = proposalai.freelancer
-            skills = [skill.name for skill in freelancer_profile.skills.all()]
-            experience = freelancer_profile.experience_years
-            
-            # Find matching score
-            matches = find_matching_jobs(
-                freelancer_skills=skills,
-                experience_years=experience,
-                n_results=1
-            )
-            
-            if matches and matches[0]['job_id'] == str(proposalai.job.id):
-                match = matches[0]
-                # Convert distance to similarity score (1 - normalized_distance)
-                score = 1 - (match['relevance_score'] or 0) if match['relevance_score'] is not None else 0.5
-                
-                # Generate feedback based on score
-                if score >= 0.8:
-                    feedback = "Excellent match! Your skills and experience align very well with the job requirements."
-                elif score >= 0.6:
-                    feedback = "Good match. You have most of the required skills, but there might be some areas for improvement."
-                else:
-                    feedback = "Fair match. Consider highlighting relevant experience or acquiring additional skills for this role."
-                
-                ai_feedback = {
-                    'score': score,
-                    'feedback': feedback,
-                    'match_details': match
-                }
-                
-                proposalai.ai_suggestion_score = score
-                proposalai.ai_feedback = feedback
-                proposalai.save()
-                
-                return Response(ai_feedback, status=status.HTTP_200_OK)
-            else:
-                return Response(
-                    {'error': 'Could not analyze job match accurately'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-                
-        except Exception as e:
-            return Response(
-                {'error': f'Error generating AI suggestion: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+    def perform_create(self, serializer):
+        user = self.request.user
+        job=serializer.validated_data['job']
+        proposal = draft_proposal(job, user.freelancerprofile)
+        return Response({
+            "data":ProposalSerializer(proposal).data,
+            "is_success":True
+        }, status=status.HTTP_201_CREATED)
+    
 def post_job(request):
     cleint=request.user
     JobPostSerializer=JobPostSerializer(data=request.data)
