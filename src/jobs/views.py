@@ -167,21 +167,19 @@ class ProposalViewSet(viewsets.ModelViewSet):
     serializer_class = ProposalSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def get_queryset(self):
-        user = self.request.user
-        if hasattr(user, 'freelancerprofile'):
-            return Proposalai.objects.filter(freelancer=user.freelancerprofile)
-        elif hasattr(user, 'clientprofile'):
-            return Proposalai.objects.filter(job__client=user.clientprofile)
-        return Proposalai.objects.none()
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     if hasattr(user, 'freelancerprofile'):
+    #         return Proposalai.objects.filter(freelancer=user.freelancerprofile)
+    #     elif hasattr(user, 'clientprofile'):
+    #         return Proposalai.objects.filter(job__client=user.clientprofile)
+    #     return Proposalai.objects.none()
     def perform_create(self, serializer):
+        print("Creating proposal...")
         user = self.request.user
         job=serializer.validated_data['job']
-        proposal = draft_proposal(job, user.freelancerprofile)
-        return Response({
-            "data":ProposalSerializer(proposal).data,
-            "is_success":True
-        }, status=status.HTTP_201_CREATED)
+        draft_proposal(job, user.freelancerprofile)
+        
     
 def post_job(request):
     cleint=request.user
