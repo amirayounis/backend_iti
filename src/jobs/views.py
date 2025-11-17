@@ -1,3 +1,4 @@
+from httpcore import request
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,7 +10,7 @@ from .serializers import (
     FreelancerPortfolioSerializer, SkillSerializer, FreelancerProfileSerializer, ClientProfileSerializer,
     JobPostSerializer, ProposalSerializer
 )
-from .ai.job_matching import get_matches_jops, store_job_embedding , remove_job_embedding,store_job_embedding_with_ollama,get_matches_jops_ollama
+from .ai.job_matching import get_matches_jobs, store_job_embedding , remove_job_embedding
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
@@ -79,28 +80,43 @@ class JobPostViewSet(viewsets.ModelViewSet):
         description=serializered_instance.description
         Skills=serializered_instance.required_skills.all()
         skills_list=[skill.name for skill in Skills]
-        full_description = f"{title}\n\n{description}\n\nSkills: {','.join(skills_list)}"
-        store_job_embedding_with_ollama( job_id=serializer.instance.id, description=full_description)
+        full_description = (
+        f"Job Title: {title}. "
+        f"Job Description: {description}. "
+        f"Required Skills: {', '.join(skills_list)}.")
+        store_job_embedding( job_id=serializer.instance.id, description=full_description)
     
     @action(detail=False, methods=['get'], url_path='matched-jobs')
     def matched_jobs(self, request):
         """Return matched jobs for the current freelancer."""
         user = request.user
-        print ("uuuuuuuuuuuuuser",user)
-        # Ensure the user has a freelancer profile
+        print("uuuuuuuuuuuuuser", user)
+
+    # Ensure the user has a freelancer profile
         try:
             freelancer_profile = FreelancerProfile.objects.get(user=user)
-        except AttributeError:
+        except FreelancerProfile.DoesNotExist:
             return Response(
                 {"detail": "No freelancer profile found for this user."},
                 status=status.HTTP_404_NOT_FOUND
             )
-        # Combine all freelancer skill descriptions into a single query text
-        query_text = "the skills are: " + ",".join(skill.name for skill in freelancer_profile.skills.all())
-        query_text += f", field is: {freelancer_profile.categories_of_expertise}, experience years: {freelancer_profile.experience_years}"
-        print("query_text",query_text)
-        job_list=get_matches_jops_ollama(query_text)
-        print("job_list",job_list)
+    # -------------------------------
+    # Build structured embedding query
+    # -------------------------------
+        skills_str = ", ".join(skill.name for skill in freelancer_profile.skills.all())
+
+        query_text = f"""
+    Skills:
+    html5, css3, bootstrap, angular12, react.js, flutter, react native
+    Field:
+    {freelancer_profile.categories_of_expertise}
+    """
+
+        print("Structured Query:", query_text)
+
+        # Perform semantic job matching
+        job_list = get_matches_jobs(query_text)
+
         return Response(job_list, status=status.HTTP_200_OK)
     def perform_destroy(self, instance):
         client=self.request.user
