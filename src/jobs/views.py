@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 
 from users.models import User
-from .models import FreelancerPortfolio, Skill, FreelancerProfile, ClientProfile, JobPost, Proposal
+from .models import FreelancerPortfolio, Skill, FreelancerProfile, ClientProfile, JobPost, Proposalai
 from .serializers import (
     FreelancerPortfolioSerializer, SkillSerializer, FreelancerProfileSerializer, ClientProfileSerializer,
     JobPostSerializer, ProposalSerializer
@@ -104,10 +104,9 @@ class JobPostViewSet(viewsets.ModelViewSet):
     # Build structured embedding query
     # -------------------------------
         skills_str = ", ".join(skill.name for skill in freelancer_profile.skills.all())
-
         query_text = f"""
     Skills:
-    html5, css3, bootstrap, angular12, react.js, flutter, react native
+    {skills_str}
     Field:
     {freelancer_profile.categories_of_expertise}
     """
@@ -115,7 +114,7 @@ class JobPostViewSet(viewsets.ModelViewSet):
         print("Structured Query:", query_text)
 
         # Perform semantic job matching
-        job_list = get_matches_jobs(query_text)
+        job_list = get_matches_jobs(query_text,current_user=user)
 
         return Response(job_list, status=status.HTTP_200_OK)
     def perform_destroy(self, instance):
@@ -163,17 +162,17 @@ class JobPostViewSet(viewsets.ModelViewSet):
     #         )
 
 class ProposalViewSet(viewsets.ModelViewSet):
-    queryset = Proposal.objects.all()
+    queryset = Proposalai.objects.all()
     serializer_class = ProposalSerializer
     permission_classes = [permissions.IsAuthenticated]
-
+    
     def get_queryset(self):
         user = self.request.user
         if hasattr(user, 'freelancerprofile'):
-            return Proposal.objects.filter(freelancer=user.freelancerprofile)
+            return Proposalai.objects.filter(freelancer=user.freelancerprofile)
         elif hasattr(user, 'clientprofile'):
-            return Proposal.objects.filter(job__client=user.clientprofile)
-        return Proposal.objects.none()
+            return Proposalai.objects.filter(job__client=user.clientprofile)
+        return Proposalai.objects.none()
 
     @action(detail=True, methods=['post'])
     def generate_ai_suggestion(self, request, pk=None):
@@ -188,7 +187,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             from .ai.job_matching import find_matching_jobs
             
             # Get freelancer's skills and experience
-            freelancer_profile = proposal.freelancer
+            freelancer_profile = proposalai.freelancer
             skills = [skill.name for skill in freelancer_profile.skills.all()]
             experience = freelancer_profile.experience_years
             
@@ -199,7 +198,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
                 n_results=1
             )
             
-            if matches and matches[0]['job_id'] == str(proposal.job.id):
+            if matches and matches[0]['job_id'] == str(proposalai.job.id):
                 match = matches[0]
                 # Convert distance to similarity score (1 - normalized_distance)
                 score = 1 - (match['relevance_score'] or 0) if match['relevance_score'] is not None else 0.5
@@ -218,9 +217,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
                     'match_details': match
                 }
                 
-                proposal.ai_suggestion_score = score
-                proposal.ai_feedback = feedback
-                proposal.save()
+                proposalai.ai_suggestion_score = score
+                proposalai.ai_feedback = feedback
+                proposalai.save()
                 
                 return Response(ai_feedback, status=status.HTTP_200_OK)
             else:

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import FreelancerPortfolio, PortfolioImage, Skill, FreelancerProfile, ClientProfile, JobPost, Proposal
+from .models import FreelancerPortfolio, PortfolioImage, Skill, FreelancerProfile, ClientProfile, JobPost, Proposalai
 
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,7 +48,7 @@ class JobPostSerializer(serializers.ModelSerializer):
 
 class ProposalSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Proposal
+        model = Proposalai
         fields = '__all__'
 class PortfolioImageSerializer(serializers.ModelSerializer):
     class Meta:

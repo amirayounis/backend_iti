@@ -94,17 +94,39 @@ class Proposal(models.Model):
     )
 
     job = models.ForeignKey(JobPost, on_delete=models.CASCADE)
-    freelancer = models.ForeignKey(FreelancerProfile, on_delete=models.CASCADE)
+    freelancer_user= models.ForeignKey(User, on_delete=models.CASCADE)
     cover_letter = models.TextField()
     proposed_budget = models.DecimalField(max_digits=10, decimal_places=2)
-    availability = models.CharField(max_length=100)
+    duration_in_days = models.IntegerField(default=0)
+    experience = models.TextField(max_length=500 , null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
-    ai_suggestion_score = models.FloatField(null=True, blank=True)
-    ai_feedback = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        unique_together = ('job', 'freelancer_user')
 
+    def __str__(self):
+        return f"Proposal for {self.job.title} by {self.freelancer_user.email}"
+    
+class Proposalai(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+        ('draft', 'Draft'),
+    )
+
+    job = models.ForeignKey(JobPost, on_delete=models.CASCADE)
+    freelancer= models.ForeignKey(User, on_delete=models.CASCADE)
+    cover_letter = models.TextField()
+    proposed_budget = models.DecimalField(max_digits=10, decimal_places=2)
+    duration_in_days = models.IntegerField(default=0)
+    experience = models.TextField(max_length=500 , null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         unique_together = ('job', 'freelancer')
 
     def __str__(self):
-        return f"Proposal for {self.job.title} by {self.freelancer.user.email}"
+        return f"Proposal for {self.job.title} by {self.freelancer.email}"

@@ -10,7 +10,8 @@ import chromadb
 import os
 from typing import Dict, List
 from django.conf import settings
-from jobs.models import JobPost
+from jobs.ai.draft_proposal import draft_proposal
+from jobs.models import FreelancerProfile, JobPost, Proposalai
 from users.models import User
 from . import services as ai_s
 import numpy as np
@@ -35,12 +36,21 @@ def remove_job_embedding(job_id: int) -> None:
 def generate_job_criteria(job_description: str) -> Dict:
     """Generate AI criteria for a job posting."""
     try:
-        # Generate skills analysis using LangChain
-        analysis = skills_chain.run(job_description=job_description)
+        # Generate skills analysis using LangChain (using invoke instead of deprecated run)
+        result = ai_s.skills_chain.invoke({"job_description": job_description})
         
         # Convert string response to dictionary (assuming proper JSON response)
         import json
-        criteria = json.loads(analysis)
+        
+        # Extract the text from the result
+        if isinstance(result, dict) and 'text' in result:
+            analysis_text = result['text']
+        elif isinstance(result, str):
+            analysis_text = result
+        else:
+            analysis_text = str(result)
+        
+        criteria = json.loads(analysis_text)
         
         # Format the response
         return {
@@ -60,7 +70,7 @@ def generate_job_criteria(job_description: str) -> Dict:
             'recommended_experience_level': 'Junior'
         }
 
-def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10):
+def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10, current_user=None) -> List[Dict]:
     """
     Get top n_results jobs for a freelancer using hybrid scoring:
     combined embedding similarity + reranker score.
@@ -119,18 +129,45 @@ def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10):
 
     final_results = []
     for job_id, doc, emb_score, rerank_score, combined_score in combined[:n_results]:
-        job = JobPost.objects.get(id=int(job_id))
-        final_results.append({
-            "id": job.id,
-            "title": job.title,
-            "description": job.description,
-            "client_name": job.client.username,
-            "skills": [s.name for s in job.required_skills.all()],
-            "embedding_score": float(emb_score),
-            "rerank_score": float(rerank_score),
-            "combined_score": float(combined_score)
-        })
-    print("Final Results:", final_results)
+        try:
+            job = JobPost.objects.get(id=int(job_id))
+            # # Get current user from request
+            # current_user = None
+            # print(request)
+            # if request is not None and hasattr(request, "user"):
+            #     if request.user.is_authenticated:
+            #         current_user = request.user
+            
+            # # Try to get freelancer profile if user is authenticated
+            if current_user:
+
+                try:
+                    print(f"Fetching freelancer profile for user {current_user}")
+                    freelancer = FreelancerProfile.objects.get(user=current_user)
+                    draft_proposal(job, freelancer)
+                except FreelancerProfile.DoesNotExist:
+                    print(f"No freelancer profile for user {current_user}")
+            
+            final_results.append({
+                "id": job.id,
+                "title": job.title,
+                "description": job.description,
+                "budget": str(job.budget),
+                "location": job.location,
+                "job_type": job.job_type,
+                "experience_level": job.experience_level,
+                "status": job.status,
+                "created_at": job.created_at.isoformat(),
+                "client_name": job.client.username,
+                "required_skills": [s.name for s in job.required_skills.all()],
+                "match_score": float(combined_score),
+                "proposal_status": Proposalai.objects.filter(job=job).values('status').first().get('status') if Proposalai.objects.filter(job=job).exists() else None,
+            })
+        except Exception as e:
+            print(f"Error processing job {job_id}: {str(e)}")
+            continue
+    
+    # print("Final Results:", final_results)
     return final_results
 
 
