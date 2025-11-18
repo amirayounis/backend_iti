@@ -7,6 +7,7 @@ from langchain.prompts import PromptTemplate
 from rest_framework.response import Response
 from rest_framework import  status
 from langchain.chains import LLMChain
+from jobs.serializers import ProposalSerializer
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status
 import os
@@ -72,7 +73,7 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Optional[Prop
     
     # save the proposal to the database
     try:
-        proposalai = Proposalai.objects.create(
+        proposalai = ProposalSerializer.save(
             job=job,
             freelancer=freelancer.user,
             cover_letter=proposal_data.get('cover_letter', ''),
@@ -81,11 +82,7 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Optional[Prop
             status='draft'
         )
         print(f"Proposal saved successfully: {proposalai.id}")
-        return {
-                "cover_letter": proposal_data.get('cover_letter', ''),
-                "proposed_rate": float(proposal_data.get('proposed_rate', 0)),
-                "duration": int(proposal_data.get('duration', 0))
-            }
+        return proposalai
     except Exception as e:
                 print(f"Error saving proposal: {str(e)}")
                 return None
