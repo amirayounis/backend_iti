@@ -4,6 +4,10 @@ from .views import (
     SkillViewSet, FreelancerProfileViewSet, ClientProfileViewSet,
     JobPostViewSet, post_proposal,ProposalViewSet, post_job, FreelancerPortfolioViewSet
 )
+from .interview_views.start_interview import StartInterviewView
+from .interview_views.message_interview import InterviewMessageView
+from .interview_views.stop_interview import StopInterviewView
+from .interview_views.end_interview import EndInterviewView
 
 router = DefaultRouter()
 router.register(r'skills', SkillViewSet)
@@ -16,4 +20,8 @@ router.register(r'freelancer-portfolios', FreelancerPortfolioViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('post-proposal/', post_proposal, name='post_proposal'),
+    path("start/", StartInterviewView.as_view()),
+    path("message/", InterviewMessageView.as_view()),
+    path("stop/", StopInterviewView.as_view()),
+    path("end/", EndInterviewView.as_view()),
 ]

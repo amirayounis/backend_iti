@@ -130,3 +130,22 @@ class Proposalai(models.Model):
 
     def __str__(self):
         return f"Proposal for {self.job.title} by {self.freelancer.email}"
+class Interview(models.Model):
+    conversation_id = models.CharField(max_length=100, unique=True)
+    job = models.ForeignKey(JobPost, on_delete=models.CASCADE)
+    freelancer = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    status = models.CharField(max_length=20, choices=( 
+        ('started', 'Started'),
+        ('stopped', 'Stopped'),
+        ('finished', 'Finished'),
+    ))  # started / stopped / finished
+    score = models.IntegerField(null=True, blank=True)
+    report = models.TextField(null=True, blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    class Meta:
+        unique_together = ('job', 'freelancer')
+
+    def __str__(self):
+        return f"Interview {self.conversation_id}"
