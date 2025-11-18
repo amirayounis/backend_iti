@@ -73,7 +73,7 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Optional[Prop
     
     # save the proposal to the database
     try:
-        proposalai = ProposalSerializer.save(
+        proposalai = Proposalai.objects.create(
             job=job,
             freelancer=freelancer.user,
             cover_letter=proposal_data.get('cover_letter', ''),

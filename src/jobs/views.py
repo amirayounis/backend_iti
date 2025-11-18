@@ -1,7 +1,8 @@
 from httpcore import request
 from rest_framework import viewsets, permissions, status, serializers
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from jobs.ai.draft_proposal import draft_proposal
 from users.models import User
 from .models import FreelancerPortfolio, Skill, FreelancerProfile, ClientProfile, JobPost, Proposalai
@@ -164,26 +165,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
     queryset = Proposalai.objects.all()
     serializer_class = ProposalSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
     # def get_queryset(self):
     #     user = self.request.user
     #     if hasattr(user, 'freelancerprofile'):
     #         return Proposalai.objects.filter(freelancer=user.freelancerprofile)
     #     elif hasattr(user, 'clientprofile'):
     #         return Proposalai.objects.filter(job__client=user.clientprofile)
-    #     return Proposalai.objects.none()
-    def perform_create(self, serializer):
-        print("Creating proposal...")
-        user = self.request.user
-        job=serializer.validated_data['job']
-        propsal_data=draft_proposal(job, user.freelancerprofile)
-        print("propsal_data",propsal_data)
-        return Response({
-            "data":propsal_data,
-            "is_success":True
-        }, status=status.HTTP_201_CREATED)
-       
-    
+    #     return Proposalai.objects.none()    
 def post_job(request):
     cleint=request.user
     JobPostSerializer=JobPostSerializer(data=request.data)
@@ -204,3 +192,46 @@ class FreelancerPortfolioViewSet(viewsets.ModelViewSet):
         except FreelancerProfile.DoesNotExist:
             raise serializers.ValidationError("Freelancer profile not found.")
         serializer.save(user=freelancer_profile)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def post_proposal(request):
+    """Create a draft proposal for a job"""
+    try:
+        freelancer = request.user.freelancerprofile
+    except FreelancerProfile.DoesNotExist:
+        return Response(
+            {"data": None, "is_success": False, "error": "No freelancer profile found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    job_id = request.data.get('job_id')
+    if not job_id:
+        return Response(
+            {"data": None, "is_success": False, "error": "job_id is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        job = JobPost.objects.get(id=job_id)
+    except JobPost.DoesNotExist:
+        return Response(
+            {"data": None, "is_success": False, "error": "Job not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Draft the proposal
+    proposal_obj = draft_proposal(job, freelancer)
+    
+    if not proposal_obj:
+        return Response(
+            {"data": None, "is_success": False, "error": "Failed to create proposal"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    # Serialize and return the created proposal
+    response_serializer = ProposalSerializer(proposal_obj)
+    return Response(
+        {"data": response_serializer.data, "is_success": True},
+        status=status.HTTP_201_CREATED
+    )
