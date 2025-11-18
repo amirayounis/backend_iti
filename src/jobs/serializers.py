@@ -7,10 +7,14 @@ class SkillSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class FreelancerProfileSerializer(serializers.ModelSerializer):
-    
+    skills = serializers.SerializerMethodField()
+
     class Meta:
         model = FreelancerProfile
-        exclude = ['user','skills']
+        exclude = ['user']
+
+    def get_skills(self, obj):
+        return [skill.name for skill in obj.skills.all()]
        
 
 class ClientProfileSerializer(serializers.ModelSerializer):

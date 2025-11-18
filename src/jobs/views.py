@@ -28,6 +28,18 @@ class FreelancerProfileViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         skills_data = data.pop('skills', [])
         print("Skills data:", skills_data)
+
+        # Map keys from CV parsing to model fields
+        key_mapping = {
+            'job_type': 'job_type_preferences',
+            'category': 'categories_of_expertise',
+            'linkedin_profile': 'linked_in_profile',
+            'github_profile': 'github_profile'
+        }
+        for old_key, new_key in key_mapping.items():
+            if old_key in data:
+                data[new_key] = data.pop(old_key)
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
 
