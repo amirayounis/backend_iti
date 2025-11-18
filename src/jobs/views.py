@@ -2,8 +2,6 @@ from httpcore import request
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-
 from jobs.ai.draft_proposal import draft_proposal
 from users.models import User
 from .models import FreelancerPortfolio, Skill, FreelancerProfile, ClientProfile, JobPost, Proposalai
@@ -167,21 +165,23 @@ class ProposalViewSet(viewsets.ModelViewSet):
     serializer_class = ProposalSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def get_queryset(self):
-        user = self.request.user
-        if hasattr(user, 'freelancerprofile'):
-            return Proposalai.objects.filter(freelancer=user.freelancerprofile)
-        elif hasattr(user, 'clientprofile'):
-            return Proposalai.objects.filter(job__client=user.clientprofile)
-        return Proposalai.objects.none()
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     if hasattr(user, 'freelancerprofile'):
+    #         return Proposalai.objects.filter(freelancer=user.freelancerprofile)
+    #     elif hasattr(user, 'clientprofile'):
+    #         return Proposalai.objects.filter(job__client=user.clientprofile)
+    #     return Proposalai.objects.none()
     def perform_create(self, serializer):
         user = self.request.user
         job=serializer.validated_data['job']
-        proposal = draft_proposal(job, user.freelancerprofile)
+        propsal_data=draft_proposal(job, user.freelancerprofile)
+        print("propsal_data",propsal_data)
         return Response({
-            "data":ProposalSerializer(proposal).data,
+            "data":propsal_data,
             "is_success":True
         }, status=status.HTTP_201_CREATED)
+       
     
 def post_job(request):
     cleint=request.user

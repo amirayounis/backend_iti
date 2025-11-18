@@ -4,6 +4,8 @@ from django.conf import settings
 from jobs.models import JobPost, Proposalai, FreelancerProfile  
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
+from rest_framework.response import Response
+from rest_framework import  status
 from langchain.chains import LLMChain
 import os
 def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Dict:
@@ -76,7 +78,11 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Dict:
             status='draft'
         )
         print(f"Proposal saved successfully: {proposalai.id}")
-        return proposalai
+        return {
+                "cover_letter": proposal_data.get('cover_letter', ''),
+                "proposed_rate": float(proposal_data.get('proposed_rate', 0)),
+                "duration": int(proposal_data.get('duration', 0))
+            }
     except Exception as e:
         print(f"Error saving proposal: {str(e)}")
         return None

@@ -50,6 +50,7 @@ class ProposalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proposalai
         fields = '__all__'
+        
 class PortfolioImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioImage
