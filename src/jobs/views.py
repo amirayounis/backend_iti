@@ -1,5 +1,5 @@
 from httpcore import request
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from jobs.ai.draft_proposal import draft_proposal
@@ -173,6 +173,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
     #         return Proposalai.objects.filter(job__client=user.clientprofile)
     #     return Proposalai.objects.none()
     def perform_create(self, serializer):
+        print("Creating proposal...")
         user = self.request.user
         job=serializer.validated_data['job']
         propsal_data=draft_proposal(job, user.freelancerprofile)
@@ -192,3 +193,14 @@ def post_job(request):
 class FreelancerPortfolioViewSet(viewsets.ModelViewSet):
     queryset = FreelancerPortfolio.objects.all()
     serializer_class = FreelancerPortfolioSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return FreelancerPortfolio.objects.filter(user__user=self.request.user)
+
+    def perform_create(self, serializer):
+        try:
+            freelancer_profile = FreelancerProfile.objects.get(user=self.request.user)
+        except FreelancerProfile.DoesNotExist:
+            raise serializers.ValidationError("Freelancer profile not found.")
+        serializer.save(user=freelancer_profile)

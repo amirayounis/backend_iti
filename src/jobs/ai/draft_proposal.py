@@ -1,5 +1,5 @@
 import json
-from typing import Dict
+from typing import Optional
 from django.conf import settings
 from jobs.models import JobPost, Proposalai, FreelancerProfile  
 from langchain.chat_models import ChatOpenAI
@@ -7,8 +7,11 @@ from langchain.prompts import PromptTemplate
 from rest_framework.response import Response
 from rest_framework import  status
 from langchain.chains import LLMChain
+from rest_framework.response import Response
+from rest_framework import viewsets, permissions, status
 import os
-def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Dict:
+
+def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Optional[Proposalai]:
     print(f"Drafting proposal for Job ID: {job.id} and Freelancer ID: {freelancer.id}")
     llm = ChatOpenAI(
         temperature=0.7,
@@ -84,7 +87,7 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Dict:
                 "duration": int(proposal_data.get('duration', 0))
             }
     except Exception as e:
-        print(f"Error saving proposal: {str(e)}")
-        return None
+                print(f"Error saving proposal: {str(e)}")
+                return None
     
     return proposalai
