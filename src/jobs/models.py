@@ -45,7 +45,7 @@ class FreelancerPortfolio(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         return self.name
 
 class PortfolioImage(models.Model):
