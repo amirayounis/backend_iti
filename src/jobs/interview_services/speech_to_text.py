@@ -28,6 +28,7 @@ class SpeechToTextService:
         transcript = client.audio.transcriptions.create(
             model="whisper-1",
             file=file_param,
+            language="en"
         )
 
         return transcript.text
