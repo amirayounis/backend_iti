@@ -30,22 +30,21 @@ def parse_cv(file_path):
     Returns a dictionary containing extracted information
     """
     try:
-        # api key past again --------------------------
         # Set OpenAI API key
-        if not OPENAI_API_KEY:
+        if not settings.OPENAI_API_KEY:
             raise Exception("OpenAI API key is not configured")
-        openai.api_key = OPENAI_API_KEY
+        openai.api_key = settings.OPENAI_API_KEY
 
         # Read the content of the CV
         cv_content = read_file_content(file_path)
-        
+
         # Split text into manageable chunks if it's too long
         text_splitter = CharacterTextSplitter(
             chunk_size=2000,
             chunk_overlap=200
         )
         chunks = text_splitter.split_text(cv_content)
-        
+
         # Prepare the system message
         system_message = """You are an expert CV analyzer. Extract the following information from the CV:
         1. Skills (technical and professional skills, return as a list)
@@ -55,7 +54,7 @@ def parse_cv(file_path):
         5. Categories of Expertise (one of: web_development, graphic_design, content_writing, digital_marketing, data_analysis, customer_service, other)
         6. Portfolio Website (if mentioned)
         7. LinkedIn Profile (if mentioned)
-        8. GitHub Profile (if mentioned)        
+        8. GitHub Profile (if mentioned)
         Format the response as a JSON object with these exact keys:
         {
             "skills": ["skill1", "skill2", ...],
@@ -67,9 +66,6 @@ def parse_cv(file_path):
             "linkedin_profile": "url or empty string",
             "github_profile": "url or empty string"
         }"""
-        
-        # Initialize OpenAI client with API key from settings
-        openai.api_key = settings.OPENAI_API_KEY
         
         # Process each chunk and combine results
         combined_analysis = {}

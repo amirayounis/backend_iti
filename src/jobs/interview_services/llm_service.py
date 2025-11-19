@@ -9,8 +9,8 @@ class LLMService:
     def generate_first_question(job_requirements, conversation_id):
         client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
         SYSTEM_PROMPT = f"""
-        You are a highly professional AI technical interviewer. 
-        Your task is to conduct a structured technical interview with a candidate, based on the job requirements provided to you. 
+        You are a highly professional AI technical interviewer.
+        Your task is to conduct a structured technical interview with a candidate, based on the job requirements provided to you.
         You must guide the interview from beginning to end, asking one question at a time and waiting for the candidate’s answer before generating the next question.
         ###job Requirements
         {job_requirements}
@@ -56,44 +56,41 @@ class LLMService:
 
             Return your response in JSON format:
 
-            {
+            {{
             "question": "Your next interview question here"
-            }
+            }}
 
             ### Output Format (During Report Mode)
 
             Return:
 
-            {
+            {{
             "score": 0–100,
             "summary": "...",
             "strengths": [...],
             "weaknesses": [...],
             "recommendation": "...",
             "transcript_analysis": "..."
-            }
+            }}
 
             ### Your Goal
 
             Conduct the most accurate, natural, and job-aligned technical interview possible, dynamically adapting question difficulty based on the candidate’s answers.
             """
-        message = {"role": "system", "content": SYSTEM_PROMPT}
         response = client.responses.create(
             model="gpt-4o-mini",
-            input=message,
-            response_format={"type": "json_object"},
+            input=[{"role": "system", "content": SYSTEM_PROMPT}],
             conversation=conversation_id
         )
-        return json.loads(response.output[0].text)["question"]
+        print(response.output[0]);
+        return json.loads(response.output[0].content[0].text)["question"]
     @staticmethod
     def generate_next_question(user_response, conversation_id):
         client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-        message = {"role": "user", "content": user_response}
         # append entire history
         response = client.responses.create(
             model="gpt-4o-mini",
-            input=message,
-            response_format={"type": "json_object"},
+            input=[{"role": "user", "content": user_response}],
             conversation=conversation_id
         )
-        return json.loads(response.output[0].text)["question"]
+        return json.loads(response.output[0].content[0].text)["question"]
