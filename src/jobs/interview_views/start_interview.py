@@ -21,7 +21,7 @@ class StartInterviewView(APIView):
             conversation_id=conversation_id
         )
         requirements = f"{job.title}: {job.description} , Required Skills: {', '.join([skill.name for skill in job.required_skills.all()])}"
-        first_question = LLMService.generate_next_question(requirements,conversation_id )
+        first_question = LLMService.generate_first_question(requirements,conversation_id )
         audio_binary = TextToSpeechService.synthesize(first_question)
 
         return Response({
