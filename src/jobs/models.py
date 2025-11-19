@@ -67,6 +67,8 @@ class JobPost(models.Model):
     STATUS_CHOICES = (
         ('draft', 'Draft'),
         ('published', 'Published'),
+        ('ongoing', 'Ongoing'),
+        ('cancelled', 'Cancelled'),
         ('closed', 'Closed'),
     )
 
@@ -82,6 +84,7 @@ class JobPost(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     ai_generated_criteria = models.JSONField(null=True, blank=True)
+    interview_availability = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
@@ -125,6 +128,7 @@ class Proposalai(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    match_score = models.FloatField(null=True, blank=True)
     class Meta:
         unique_together = ('job', 'freelancer')
 

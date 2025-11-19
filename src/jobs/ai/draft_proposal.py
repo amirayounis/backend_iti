@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status
 import os
 
-def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Optional[Proposalai]:
+def draft_proposal(job: JobPost, freelancer: FreelancerProfile,match_score) -> Optional[Proposalai]:
     print(f"Drafting proposal for Job ID: {job.id} and Freelancer ID: {freelancer.id}")
     llm = ChatOpenAI(
         temperature=0.7,
@@ -79,7 +79,8 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile) -> Optional[Prop
             cover_letter=proposal_data.get('cover_letter', ''),
             proposed_budget=float(proposal_data.get('proposed_rate', 0)),
             duration_in_days=int(proposal_data.get('duration', 0)),
-            status='draft'
+            status='draft',
+            match_score=float(match_score)
         )
         print(f"Proposal saved successfully: {proposalai.id}")
         return proposalai
