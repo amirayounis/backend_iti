@@ -211,7 +211,7 @@ def post_proposal(request):
             {"data": None, "is_success": False, "error": "job_id is required"},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+    match_score = request.data.get('match_score')
     try:
         job = JobPost.objects.get(id=job_id)
     except JobPost.DoesNotExist:
@@ -221,7 +221,7 @@ def post_proposal(request):
         )
     
     # Draft the proposal
-    proposal_obj = draft_proposal(job, freelancer)
+    proposal_obj = draft_proposal(job, freelancer, match_score)
     
     if not proposal_obj:
         return Response(
