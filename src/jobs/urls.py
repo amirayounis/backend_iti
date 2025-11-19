@@ -1,5 +1,8 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
+
+from jobs.interview_views.cleint_views.job_proposals import JobPropsalView
+from jobs.interview_views.cleint_views.propsaleupade import PropsalUpdateView
 from .views import (
     SkillViewSet, FreelancerProfileViewSet, ClientProfileViewSet,
     JobPostViewSet, post_proposal,ProposalViewSet, post_job, FreelancerPortfolioViewSet
@@ -24,4 +27,6 @@ urlpatterns = [
     path("message/", InterviewMessageView.as_view()),
     path("stop/", StopInterviewView.as_view()),
     path("end/", EndInterviewView.as_view()),
+    path('job-proposals/', JobPropsalView.as_view()),
+    path('proposal-update/', PropsalUpdateView.as_view()),
 ]
