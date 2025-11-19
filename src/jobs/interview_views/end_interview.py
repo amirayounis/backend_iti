@@ -1,4 +1,4 @@
-import datetime
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from jobs.models import Interview, JobPost
@@ -22,7 +22,7 @@ class EndInterviewView(APIView):
             job_requirements=requirements,
             transcript=transcript
         )
-        interview.ended_at=datetime.now()
+        interview.ended_at=timezone.now()
         interview.score = report_data["score"]
         interview.report = report_data["summary"]
         interview.status = "finished"
