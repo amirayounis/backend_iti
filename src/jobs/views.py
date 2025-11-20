@@ -250,20 +250,15 @@ def post_proposal(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def get_interview_details(request):
-    proposal_id = request.query_params.get('proposal_id')
-    if not proposal_id:
-        return Response({"error": "proposal_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+    freelancer_id = request.query_params.get('freelancer_id')
+    job_id = request.query_params.get('job_id')
+    if not freelancer_id:
+        return Response({"error": "freelancer_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+    if not job_id:
+        return Response({"error": "job_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        proposal = Proposalai.objects.get(id=proposal_id)
-    except Proposalai.DoesNotExist:
-        return Response({"error": "Proposal not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    freelancer_id = proposal.freelancer.id
-    job_id = proposal.job.id
-
-    try:
-        interview = Interview.objects.get(job=proposal.job, freelancer=proposal.freelancer)
+        interview = Interview.objects.get(job=job_id, freelancer=freelancer_id)
         interview_report = interview.report
         interview_score = interview.score
     except Interview.DoesNotExist:
