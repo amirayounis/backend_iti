@@ -13,11 +13,14 @@ class InterviewMessageView(APIView):
         audio_file = request.FILES.get("audio_file")
 
         # 1. STT
+        print("Starting speech-to-text transcription")
         user_text = SpeechToTextService.transcribe(audio_file)
-
+        print(f"Transcription result: {user_text}")
         # 2. Get next question
-        next_question = LLMService.generate_next_question(user_text, conversation_id)
-
+        try:
+            next_question = LLMService.generate_next_question(user_text, conversation_id)
+        except Exception as e:
+            next_question = "thank you for your time,"
         # 3. TTS
         audio_binary = TextToSpeechService.synthesize(next_question)
 

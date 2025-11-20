@@ -24,5 +24,7 @@ class ReportGenerator:
             messages=messages,
             response_format={"type": "json_object"}
         )
+        print("Report Generation Response:")
+        print(response.choices[0])
 
         return json.loads(response.choices[0].message.content)
