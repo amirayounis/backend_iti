@@ -5,7 +5,7 @@ from jobs.interview_views.cleint_views.job_proposals import JobPropsalView
 from jobs.interview_views.cleint_views.propsaleupade import PropsalUpdateView
 from .views import (
     SkillViewSet, FreelancerProfileViewSet, ClientProfileViewSet,
-    JobPostViewSet, post_proposal,ProposalViewSet, post_job, FreelancerPortfolioViewSet
+    JobPostViewSet, post_proposal,ProposalViewSet, post_job, FreelancerPortfolioViewSet, get_interview_details
 )
 from .interview_views.start_interview import StartInterviewView
 from .interview_views.message_interview import InterviewMessageView
@@ -29,4 +29,5 @@ urlpatterns = [
     path("end/", EndInterviewView.as_view()),
     path('job-proposals/', JobPropsalView.as_view()),
     path('proposal-update/', PropsalUpdateView.as_view()),
+    path('interview/', get_interview_details, name='get_interview_details'),
 ]

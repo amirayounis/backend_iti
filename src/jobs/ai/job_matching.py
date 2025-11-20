@@ -147,22 +147,22 @@ def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10, current_u
             #         draft_proposal(job, freelancer)
             #     except FreelancerProfile.DoesNotExist:
             #         print(f"No freelancer profile for user {current_user}")
-            
-            final_results.append({
-                "id": job.id,
-                "title": job.title,
-                "description": job.description,
-                "budget": str(job.budget),
-                "location": job.location,
-                "job_type": job.job_type,
-                "experience_level": job.experience_level,
-                "status": job.status,
-                "created_at": job.created_at.isoformat(),
-                "client_name": job.client.username,
-                "required_skills": [s.name for s in job.required_skills.all()],
-                "match_score": float(combined_score),
-                "proposal_status": Proposalai.objects.filter(job=job).values('status').first().get('status') if Proposalai.objects.filter(job=job).exists() else None,
-            })
+            if(combined_score>=.30):
+                final_results.append({
+                    "id": job.id,
+                    "title": job.title,
+                    "description": job.description,
+                    "budget": str(job.budget),
+                    "location": job.location,
+                    "job_type": job.job_type,
+                    "experience_level": job.experience_level,
+                    "status": job.status,
+                    "created_at": job.created_at.isoformat(),
+                    "client_name": job.client.username,
+                    "required_skills": [s.name for s in job.required_skills.all()],
+                    "match_score": float(combined_score),
+                    "proposal_status": Proposalai.objects.filter(job=job).values('status').first().get('status') if Proposalai.objects.filter(job=job).exists() else None,
+                })
         except Exception as e:
             print(f"Error processing job {job_id}: {str(e)}")
             continue

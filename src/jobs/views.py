@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from jobs.ai.draft_proposal import draft_proposal
 from users.models import User
-from .models import FreelancerPortfolio, Skill, FreelancerProfile, ClientProfile, JobPost, Proposalai
+from .models import FreelancerPortfolio, Skill, FreelancerProfile, ClientProfile, JobPost, Proposalai, Interview
 from .serializers import (
     FreelancerPortfolioSerializer, SkillSerializer, FreelancerProfileSerializer, ClientProfileSerializer,
     JobPostSerializer, ProposalSerializer
@@ -247,3 +247,32 @@ def post_proposal(request):
         {"data": response_serializer.data, "is_success": True},
         status=status.HTTP_201_CREATED
     )
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_interview_details(request):
+    proposal_id = request.query_params.get('proposal_id')
+    if not proposal_id:
+        return Response({"error": "proposal_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        proposal = Proposalai.objects.get(id=proposal_id)
+    except Proposalai.DoesNotExist:
+        return Response({"error": "Proposal not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    freelancer_id = proposal.freelancer.id
+    job_id = proposal.job.id
+
+    try:
+        interview = Interview.objects.get(job=proposal.job, freelancer=proposal.freelancer)
+        interview_report = interview.report
+        interview_score = interview.score
+    except Interview.DoesNotExist:
+        interview_report = None
+        interview_score = None
+
+    return Response({
+        "freelancer_id": freelancer_id,
+        "job_id": job_id,
+        "interview_report": interview_report,
+        "interview_score": interview_score
+    }, status=status.HTTP_200_OK)
