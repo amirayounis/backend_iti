@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from jobs.models import Interview, JobPost
@@ -24,8 +24,8 @@ class EndInterviewView(APIView):
         )
         interview.ended_at=datetime.now()
         interview.score = report_data["score"]
-        interview.report = f"{report_data["summary"]} \n {report_data["strengths"]} \n {report_data["weaknesses"]} \n {report_data["recommendation"]}\n {report_data["transcript_analysis"]}"
-        interview.status = "finished"
+        interview.report = f"{report_data['summary']} \n {report_data['strengths']} \n {report_data['weaknesses']} \n {report_data['recommendation']}\n {report_data['transcript_analysis']}"
+        interview.status =                                                            "finished"
         interview.save()
 
         return Response(report_data)
