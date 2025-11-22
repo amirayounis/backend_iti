@@ -1,4 +1,4 @@
-from datetime import datetime 
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from jobs.models import Interview, JobPost
@@ -16,16 +16,19 @@ class EndInterviewView(APIView):
         # build transcript text
         transcript = ""
         for msg in items:
-            transcript += f"{msg.role.upper()}: {msg.content[0].text}\n"
-
+            if msg.role != "system":
+                transcript += f"{msg.role.upper()}: {msg.content[0].text}\n"
+        print("Generating report...")
+        print(f"Job Requirements: {requirements}")
+        print(f"Transcript:\n{transcript}")
         report_data = ReportGenerator.generate_report(
             job_requirements=requirements,
             transcript=transcript
         )
-        interview.ended_at=datetime.now()
+        interview.ended_at=timezone.now()
         interview.score = report_data["score"]
-        interview.report = f"{report_data['summary']} \n {report_data['strengths']} \n {report_data['weaknesses']} \n {report_data['recommendation']}\n {report_data['transcript_analysis']}"
-        interview.status =                                                            "finished"
+        interview.report = f"{report_data["strengths"]} \n {report_data["weaknesses"]} \n {report_data["recommendation"]}\n {report_data["transcript_analysis"]}"
+        interview.status = "finished"
         interview.save()
 
         return Response(report_data)

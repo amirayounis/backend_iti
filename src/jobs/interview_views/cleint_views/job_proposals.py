@@ -27,6 +27,8 @@ class JobPropsalView(APIView):
                 "proposal_id":proposal.id,
                 "freelancer_id":freelancer.id,
                 "interview_score":interview_score,
+                "proposal_status":proposal.status,
+                "report":interview.report if interview else None
             }
             proposals_data.append(freelancer_card)
         return Response(proposals_data)
