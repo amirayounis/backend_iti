@@ -1,2 +1,4 @@
 /venv
 /src/.env
+/src/db_chroma
+/src/chroma_db
