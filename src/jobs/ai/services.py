@@ -9,9 +9,13 @@ from sentence_transformers import CrossEncoder
 reranker = CrossEncoder("BAAI/bge-reranker-v2-m3")
 
 # Initialize OpenAI embeddings
-embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY
-                              ,model="text-embedding-3-large")
-
+try:
+    print("hhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
+    embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY
+                                  ,model="text-embedding-3-large")
+    print("Initialized OpenAI embeddings successfully.")
+except Exception as e:
+    raise ValueError(f"--------------Failed to initialize OpenAI embeddings: {e}")
 # Create a custom embedding function wrapper for ChromaDB 0.4.16+
 class OpenAIEmbeddingFunction(EmbeddingFunction):
     def __call__(self, texts):
@@ -34,7 +38,7 @@ class OpenAIEmbeddingFunction(EmbeddingFunction):
 embedding_function = OpenAIEmbeddingFunction()
 
 # Initialize ChromaDB
-CHROMA_PATH = os.path.join(settings.BASE_DIR, 'db_chroma')
+CHROMA_PATH = os.path.join(settings.BASE_DIR, 'chroma_db')
 client = chromadb.PersistentClient(path=CHROMA_PATH)
 try:
     jobs_collection = client.get_collection("jobs", embedding_function=embedding_function)

@@ -79,13 +79,11 @@ def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10, current_u
     # 1️⃣ Vector Search
     # -----------------------
     query_vector = ai_s.embeddings.embed_query(query)
-
     results = ai_s.jobs_collection.query(
         query_embeddings=[query_vector],
         n_results=top_k,
         include=["documents", "distances"]
     )
-
     docs = results["documents"][0]
     ids = results["ids"][0]
     distances = results["distances"][0]
@@ -161,7 +159,7 @@ def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10, current_u
                     "client_name": job.client.username,
                     "required_skills": [s.name for s in job.required_skills.all()],
                     "match_score": float(combined_score),
-                    "proposal_status": Proposalai.objects.filter(job=job).values('status').first().get('status') if Proposalai.objects.filter(job=job).exists() else None,
+                    "proposal_status": Proposalai.objects.filter(job=job, user=current_user).values('status').first().get('status') if Proposalai.objects.filter(job=job, user=current_user).exists() else None,
                 })
         except Exception as e:
             print(f"Error processing job {job_id}: {str(e)}")

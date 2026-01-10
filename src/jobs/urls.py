@@ -11,6 +11,7 @@ from .interview_views.start_interview import StartInterviewView
 from .interview_views.message_interview import InterviewMessageView
 from .interview_views.stop_interview import StopInterviewView
 from .interview_views.end_interview import EndInterviewView
+from .recored.recored import recored
 
 router = DefaultRouter()
 router.register(r'skills', SkillViewSet)
@@ -28,6 +29,7 @@ urlpatterns = [
     path("stop/", StopInterviewView.as_view()),
     path("end/", EndInterviewView.as_view()),
     path('job-proposals/', JobPropsalView.as_view()),
+    path('record/', recored.as_view()),
     path('proposal-update/', PropsalUpdateView.as_view()),
     path('interview/', get_interview_details, name='get_interview_details'),
 ]

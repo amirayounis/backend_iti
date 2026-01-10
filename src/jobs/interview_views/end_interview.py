@@ -27,7 +27,7 @@ class EndInterviewView(APIView):
         )
         interview.ended_at=timezone.now()
         interview.score = report_data["score"]
-        interview.report = f"{report_data["strengths"]} \n {report_data["weaknesses"]} \n {report_data["recommendation"]}\n {report_data["transcript_analysis"]}"
+        interview.report = f'{report_data["strengths"]} \n {report_data["weaknesses"]} \n {report_data["recommendation"]}\n {report_data["transcript_analysis"]}'
         interview.status = "finished"
         interview.save()
 
