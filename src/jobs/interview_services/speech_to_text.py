@@ -13,9 +13,6 @@ class SpeechToTextService:
 
             client = openai.OpenAI(api_key=api_key)
             print("Preparing file for transcription")
-            # The OpenAI client expects `file` to be bytes, a file-like IO, PathLike or a tuple.
-            # Django provides `InMemoryUploadedFile` / `TemporaryUploadedFile` objects, so
-            # convert them to a tuple (filename, bytes, content_type) which the SDK accepts.
             if hasattr(file_obj, "read"):
                 # read bytes from the uploaded file
                 file_bytes = file_obj.read()
@@ -34,7 +31,9 @@ class SpeechToTextService:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=file_param,
-
+                prompt="do transcription with arabic accents and do not add any extra phrases or words not present in the audio file",
+                temperature=0,
+                language="ar"  # Support Arabic and other languages
             )
             print(transcript)
             return transcript.text
