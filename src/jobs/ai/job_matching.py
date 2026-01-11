@@ -170,7 +170,7 @@ def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10, current_u
 
 def remove_all_job_embeddings() -> None:
     """Remove all job embeddings from the vector database."""
-    ai_s.jobs_collection.delete()
-    
+    ai_s.client.reset()
+
     
   
