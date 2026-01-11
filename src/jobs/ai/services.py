@@ -38,7 +38,7 @@ class OpenAIEmbeddingFunction(EmbeddingFunction):
 embedding_function = OpenAIEmbeddingFunction()
 
 # Initialize ChromaDB
-CHROMA_PATH = os.path.join(settings.BASE_DIR, 'chroma_db')
+CHROMA_PATH = os.path.join(settings.BASE_DIR, 'chroma_v1_data')
 client = chromadb.PersistentClient(path=CHROMA_PATH)
 try:
     jobs_collection = client.get_collection("jobs", embedding_function=embedding_function)
