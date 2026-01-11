@@ -79,13 +79,11 @@ def get_matches_jobs(query: str, top_k: int = 20, n_results: int = 10, current_u
     # 1️⃣ Vector Search
     # -----------------------
     query_vector = ai_s.embeddings.embed_query(query)
-
     results = ai_s.jobs_collection.query(
         query_embeddings=[query_vector],
         n_results=top_k,
         include=["documents", "distances"]
     )
-
     docs = results["documents"][0]
     ids = results["ids"][0]
     distances = results["distances"][0]
