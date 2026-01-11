@@ -67,8 +67,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
+# Handle DATABASE_URL from Railway or parse individual DB_* env vars
+import os
+from urllib.parse import urlparse
+
+db_url = config('DATABASE_URL', default=None)
+
+if db_url:
+    # Parse full URL (e.g., mysql://user:password@host:port/dbname)
+    parsed = urlparse(db_url)
+    db_config = {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': parsed.path.lstrip('/') or config('DB_NAME', default='railway'),
+        'USER': parsed.username or config('DB_USER', default='root'),
+        'PASSWORD': parsed.password or config('DB_PASSWORD', default=''),
+        'HOST': parsed.hostname or config('DB_HOST', default='localhost'),
+        'PORT': parsed.port or int(config('DB_PORT', default='3306')),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        }
+    }
+else:
+    # Fall back to individual environment variables
+    db_config = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
@@ -80,6 +102,9 @@ DATABASES = {
             'charset': 'utf8mb4',
         }
     }
+
+DATABASES = {
+    'default': db_config
 }
 
 # Password validation

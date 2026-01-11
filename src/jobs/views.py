@@ -10,7 +10,7 @@ from .serializers import (
     FreelancerPortfolioSerializer, SkillSerializer, FreelancerProfileSerializer, ClientProfileSerializer,
     JobPostSerializer, ProposalSerializer
 )
-from .ai.job_matching import get_matches_jobs, store_job_embedding , remove_job_embedding
+from .ai.job_matching import get_matches_jobs, remove_all_job_embeddings, store_job_embedding , remove_job_embedding
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
@@ -97,7 +97,11 @@ class JobPostViewSet(viewsets.ModelViewSet):
         f"Job Description: {description}. "
         f"Required Skills: {', '.join(skills_list)}.")
         store_job_embedding( job_id=serializer.instance.id, description=full_description)
-    
+    @action(detail=False, methods=['delete'], url_path='remove-all-embeddings')
+    def remove_all_embeddings(self, request):
+        """Remove all job embeddings from the vector database."""
+        remove_all_job_embeddings()
+        return Response({"message": "All job embeddings removed."}, status=status.HTTP_200_OK)
     @action(detail=False, methods=['get'], url_path='matched-jobs')
     def matched_jobs(self, request):
         """Return matched jobs for the current freelancer."""
