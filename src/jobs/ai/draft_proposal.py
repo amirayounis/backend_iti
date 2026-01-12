@@ -36,18 +36,22 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile,match_score) -> O
     )
     
     prompt = PromptTemplate(
-        input_variables=["job_description", "freelancer_profile", "freelancer_rate"],
+        input_variables=["job_description", "freelancer_profile", "freelancer_rate", "freelancer_name", "client_name"],
         template="""
         You are an expert proposal writer. 
         Given the job description and freelancer profile, draft a proposal including:
         1. A cover letter tailored to the job description.
         2. A proposed rate based on the job budget and freelancer hourly rate.
         3. expected duration in days to finish the job.
+        4. foucus on matching the job requirements with the freelancer skills.
+        5. mention the freelancer name  and client name  in the cover letter.
         Job Description:
         {job_description}
         Freelancer Profile:
         {freelancer_profile}
         Freelancer Hourly Rate: ${freelancer_rate}
+        Freelancer Name: {freelancer_name}
+        Client Name: {client_name}
         Provide the proposal in JSON format with keys: cover_letter, proposed_rate as float , duration as integer.
         """,
     )   
@@ -57,7 +61,9 @@ def draft_proposal(job: JobPost, freelancer: FreelancerProfile,match_score) -> O
     response = chain.invoke({
         "job_description": job.description,
         "freelancer_profile": freelancer_profile_str,
-        "freelancer_rate": freelancer.hourly_rate
+        "freelancer_rate": freelancer.hourly_rate,
+        "freelancer_name": freelancer.user.first_name + " " + freelancer.user.last_name,
+        "client_name": job.client.first_name + " " + job.client.last_name
     })  
     print("kkkkkkkkkkkkkkkkkkk,")
     
